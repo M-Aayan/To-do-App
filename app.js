@@ -1,9 +1,18 @@
 const TextBox = document.querySelector("#textbox")
 const addBtn = document.querySelector("#addBtn")
-const ulElement = document.createElement("ul")
+const ulTaskList = document.querySelector("#tasklist")
 
 
-addBtn.addEventListener("click", () => {
+
+
+TextBox.addEventListener("keydown", (event)=>{
+    if (event.key === "Enter") {
+        return addTask()
+    }
+})
+
+
+const addTask = () => {
     let TextBoxValue = TextBox.value.trim()
     if (TextBoxValue === "") {
         TextBox.value = alert("You must write something!")
@@ -12,10 +21,19 @@ addBtn.addEventListener("click", () => {
     }
         let li = document.createElement("li")
         li.textContent = TextBoxValue
-        ulElement.appendChild(li)
-
-
+        ulTaskList.appendChild(li)
         TextBox.value = ""
 
-})
-document.body.appendChild(ulElement)
+        //Delete task
+
+        const DelBtn = document.createElement("button")
+        DelBtn.textContent = " Delete"
+        DelBtn.classList.add
+        li.appendChild(DelBtn)
+        DelBtn.addEventListener("click" , ()=>{
+            li.remove()
+        })
+}
+
+
+
