@@ -2,92 +2,163 @@ const TextBox = document.querySelector("#textbox")
 const addBtn = document.querySelector("#addBtn")
 const ulTaskList = document.querySelector("#tasklist")
 let currentTask = null;
-
+let Task = []
 
 //dark/light mode
 
 const themeBtn = document.querySelector("#themeBtn");
 themeBtn.addEventListener("click", () => {
     document.body.classList.toggle("dark");
-    if(document.body.classList.contains("dark")){
+    if (document.body.classList.contains("dark")) {
         themeBtn.textContent = "☀️";
-    }else{
+    } else {
         themeBtn.textContent = "🌙";
     }
+
+    saveTheme()
 });
 
 
 
-TextBox.addEventListener("keydown", (event)=>{
+//save theme
+const saveTheme = ()=>{
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark")
+    } else {
+        localStorage.setItem("theme", "light")
+    }
+}
+
+//load theme
+
+const loadTheme = ()=>{
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+        document.body.classList.add("dark");
+        themeBtn.textContent = "☀️";
+    } else {
+        document.body.classList.remove("dark");
+        themeBtn.textContent = "🌙";
+    }
+}
+
+
+
+
+//Enter Key
+
+TextBox.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         return addTask()
     }
 })
 
+//Add Task
 
 const addTask = () => {
     let TextBoxValue = TextBox.value.trim()
     if (TextBoxValue === "") {
-        TextBox.value = alert("You must write something!")
-        TextBox.value = ""
-        return
+        TextBox.value = alert("You must write something!");
+        TextBox.focus();
+        return;
     }
-     if (currentTask !== null) {
-        currentTask.textContent = TextBoxValue;
-
+    if (currentTask !== null) {
+        Task[currentTask].text = TextBoxValue;
+        saveTask();
+        renderTasks();
         currentTask = null;
-        TextBox.value = "";
         addBtn.textContent = "Add";
+        TextBox.value = "";
+        return;
+    }
 
-        return
-     }
+    Task.push({
+        text: TextBoxValue,
+        completed: false
+    });
+    saveTask()
+    renderTasks();
+    TextBox.value = "";
+}
 
-        let li = document.createElement("li")
-        let taskText = document.createElement("span");
-        taskText.textContent = TextBoxValue
-        li.appendChild(taskText)
+// Save Task
 
-        //Delete task
+const saveTask = () => {
+    localStorage.setItem("Task", JSON.stringify(Task))
+}
 
-        const DelBtn = document.createElement("button")
-        DelBtn.textContent = " Delete"
-        DelBtn.classList.add("delete-btn")
-        li.appendChild(DelBtn)
-        DelBtn.addEventListener("click" , ()=>{
-            li.remove()
-        })
 
-        // Done Task 
+// Create task
 
-        const DoneBtn = document.createElement("button")
-        DoneBtn.textContent = "Done!"
-        DoneBtn.classList.add("done-btn")
-        li.appendChild(DoneBtn)
-        DoneBtn.addEventListener("click", ()=>{
-            li.classList.toggle("completed")
-        })
+const createTaskElement = (task, index) => {
 
-        // Edit Task
+    let li = document.createElement("li")
+    if (task.completed) {
+        li.classList.add("completed");
+    }
+    let taskText = document.createElement("span");
+    taskText.textContent = task.text
+    li.appendChild(taskText)
 
-        const EditBtn = document.createElement("button");
-        EditBtn.textContent = "Edit";
-        EditBtn.classList.add("edit-btn")
-        li.appendChild(EditBtn);
+    //Delete task
 
-        EditBtn.addEventListener("click", () => {
-        TextBox.value = taskText.textContent;
-        currentTask = taskText;
+    const DelBtn = document.createElement("button")
+    DelBtn.textContent = " Delete"
+    DelBtn.classList.add("delete-btn")
+    DelBtn.addEventListener("click", () => {
+        Task.splice(index, 1)
+        saveTask()
+        renderTasks();
+    })
+    li.appendChild(DelBtn)
+
+    // Done Task 
+
+    const DoneBtn = document.createElement("button")
+    DoneBtn.textContent = "Done!"
+    DoneBtn.classList.add("done-btn")
+    DoneBtn.addEventListener("click", () => {
+        Task[index].completed = !Task[index].completed;
+
+        saveTask();
+        renderTasks();
+    })
+    li.appendChild(DoneBtn)
+
+    // Edit Task
+
+    const EditBtn = document.createElement("button");
+    EditBtn.textContent = "Edit";
+    EditBtn.classList.add("edit-btn")
+
+    EditBtn.addEventListener("click", () => {
+        TextBox.value = Task[index].text;
+        currentTask = index;
         addBtn.textContent = "Update";
         TextBox.focus();
+    });
 
-});
-        
+    li.appendChild(EditBtn);
     ulTaskList.appendChild(li);
-    TextBox.value = ""
+}
 
 addBtn.addEventListener("click", addTask);
+
+//render task
+const renderTasks = () => {
+    ulTaskList.innerHTML = "";
+    Task.forEach((task, index) => {
+        createTaskElement(task, index);
+    });
 
 }
 
 
-
+//Load Task
+const loadTask = () => {
+    Task = JSON.parse(localStorage.getItem("Task")) || []
+    renderTasks();
+}
+loadTask()
+loadTheme();
+loadTask();
